@@ -1,0 +1,64 @@
+--- a/src/pcms/field/data/point_cloud.cpp
++++ b/src/pcms/field/data/point_cloud.cpp
+@@ -33,7 +33,7 @@
+ void PointCloud::SetValues(Rank2View<const Real, DeviceMemorySpace> data)
+ {
+   PCMS_FUNCTION_TIMER;
+-  CopyDeviceRank2ViewToDeviceView(device_data_, data);
++  CopyDeviceRank2ViewToDeviceView<Real>(device_data_, data);
+ }
+ 
+ } // namespace pcms
+--- a/src/pcms/field/data/simple.h
++++ b/src/pcms/field/data/simple.h
+@@ -49,7 +49,7 @@
+ 
+   void SetValues(Rank2View<const T, DeviceMemorySpace> values) override
+   {
+-    CopyDeviceRank2ViewToDeviceView(device_data_, values);
++    CopyDeviceRank2ViewToDeviceView<T>(device_data_, values);
+   }
+ 
+ private:
+--- a/src/pcms/field/data/omega_h.h
++++ b/src/pcms/field/data/omega_h.h
+@@ -124,7 +124,7 @@
+ 
+   void SetValues(Rank2View<const T, DeviceMemorySpace> values) override
+   {
+-    CopyDeviceRank2ViewToDeviceView(device_data_, values);
++    CopyDeviceRank2ViewToDeviceView<T>(device_data_, values);
+     mesh_->set_tag(tag_dim_, tag_name_,
+                    detail::OwnedValuesAsTag<T, tag_value_type>(
+                      GetValues(), layout_->GetOwnedIndices(),
+--- a/src/pcms/field/data/mesh_fields.h
++++ b/src/pcms/field/data/mesh_fields.h
+@@ -107,7 +107,7 @@
+ 
+   void SetValues(Rank2View<const T, DeviceMemorySpace> values) override
+   {
+-    CopyDeviceRank2ViewToDeviceView(owned_data_, values);
++    CopyDeviceRank2ViewToDeviceView<T>(owned_data_, values);
+     if (!layout_->HasGhosts()) {
+       SyncBackend(MakeConstRank2View(owned_data_));
+       return;
+@@ -115,7 +115,7 @@
+     // Write the owned rows into the backend's values with ghosts, keeping its
+     // ghost values.
+     auto local = ReadBackend();
+-    ScatterRows(MakeConstRank2View(owned_data_), layout_->GetOwnedIndices(),
++    ScatterRows<T>(MakeConstRank2View(owned_data_), layout_->GetOwnedIndices(),
+                 MakeRank2View(local));
+     SyncBackend(MakeConstRank2View(local));
+   }
+--- a/src/pcms/field/evaluator/omega_h_lagrange.h
++++ b/src/pcms/field/evaluator/omega_h_lagrange.h
+@@ -262,7 +262,7 @@
+     const auto& data = dynamic_cast<const OmegaHFieldData<T>&>(field.GetData());
+     using TagValue = typename OmegaHFieldData<T>::tag_value_type;
+     const auto dof_data = detail::OmegaHLagrangeTagValues<T, TagValue>{
+-      layout_->GetMesh().get_array<TagValue>(layout_->GetDOFHolderEntityDim(),
++      layout_->GetMesh().template get_array<TagValue>(layout_->GetDOFHolderEntityDim(),
+                                              data.GetTagName()),
+       layout_->GetNumComponents()};
+     LO n_valid = static_cast<LO>(hint_.elem_ids.size());

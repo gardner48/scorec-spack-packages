@@ -105,6 +105,8 @@ class Pcms(CMakePackage, CudaPackage, ROCmPackage):
     conflicts('+cuda', when='+rocm', msg='CUDA and ROCm are not compatible')
 
 
+    patch("pcms-apple-clang-template-fixes.patch", when="@develop")
+
     resource(name='testdata',
             git='https://github.com/SCOREC/pcms_testcases.git',
             branch='main',
