@@ -62,3 +62,8 @@
                                               data.GetTagName()),
        layout_->GetNumComponents()};
      LO n_valid = static_cast<LO>(hint_.elem_ids.size());
+--- a/src/pcms/coupler/field_communicator.hpp
++++ b/src/pcms/coupler/field_communicator.hpp
+@@ -34,1 +34,1 @@
+-      layout_comm_.GetChannel().CreateComm<T>(name, layout_comm.GetMPIComm());
++      layout_comm_.GetChannel().template CreateComm<T>(name, layout_comm.GetMPIComm());
